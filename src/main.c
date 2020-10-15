@@ -121,7 +121,7 @@ int main()
         generate_failures(pid[3], pid[4], pid[5]);
     }
     
-    for(int i = 0; i < N_SUBPROCESSES - 1 /*uno lo devo killare io*/; i++)
+    for(int i = 0; i < N_SUBPROCESSES - 1; i++)
     {
         wait(&can_exit);
     }
@@ -132,4 +132,5 @@ int main()
     unlink("../tmp/pipe");
     return 0;
 }
+
 
