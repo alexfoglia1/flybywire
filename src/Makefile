@@ -5,4 +5,6 @@ LIBS = -lm
 fly_by_wire:
 	mkdir ../log
 	mkdir ../tmp
+	mkdir ../bin
 	$(CC) -o ../bin/fly_by_wire utils.c genfail.c pfc.c pfcswitch.c transducers.c wes.c main.c $(LIBS)
+	cp ./input/G18.txt ../bin/G18.txt
