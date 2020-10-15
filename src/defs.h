@@ -10,6 +10,7 @@
 
 #define SECONDS_IN_HOUR 3600
 #define SECONDS_IN_MIN  60
+#define SECONDS_TO_MICROSECONDS(usec) (1000000 * usec)
 
 #define DIGIT_0   0
 #define DIGIT_1   1

@@ -28,7 +28,7 @@ void transducers_loop(int input_fd, tnd_id id)
     int bytes = 0;
     while(true)
     {
-        usleep(1000000 * DELAY_S);
+        usleep(SECONDS_TO_MICROSECONDS(DELAY_S));
         if(id == TND_1)
         {
             struct sockaddr_in cliaddr;
@@ -47,6 +47,7 @@ void transducers_loop(int input_fd, tnd_id id)
         }
         else
         {
+            /* id == TND_3 */
             FILE* f = fopen("../tmp/shared.tmp", "r");
             fseek(f, expected_cnt * sizeof(pfc_message), SEEK_CUR);
             bytes = sizeof(pfc_message) * fread(&in_msg, sizeof(pfc_message), 1, f);
@@ -62,6 +63,5 @@ void transducers_loop(int input_fd, tnd_id id)
         {
             return;
         }
-        
     }
 }

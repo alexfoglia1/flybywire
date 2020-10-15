@@ -119,6 +119,7 @@ int main()
     {
         /* Child process GEN_FAILURE*/
         generate_failures(pid[3], pid[4], pid[5]);
+        /* exit on SIGKILL from parent */
     }
     
     for(int i = 0; i < N_SUBPROCESSES - 1; i++)
@@ -126,10 +127,12 @@ int main()
         wait(&can_exit);
     }
     
+    /* cleanup */
     close(sock_fd);
-    kill(pid[6], SIGKILL);
+    kill(pid[6] /* GEN_FAILURE */, SIGKILL);
     unlink("../tmp/shared.tmp");
     unlink("../tmp/pipe");
+    
     return 0;
 }
 

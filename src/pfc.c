@@ -93,22 +93,13 @@ void pfc_loop(int output_fd, pfc_id id, struct sockaddr_in* saddr)
             }
             out_msg.end_flag = 0;
             out_msg.cnt = processed_nmea;
-            
-            char filename[64];
-            sprintf(filename, "../log/expectedPFC%d.log", id + 1);
-            FILE*log = fopen(filename, "a");
-            fprintf(log, "%f\n", out_msg.speed_m_s);
-            fclose(log);
-            
             send_pfc_msg(out_msg, output_fd, saddr);
-         
-            
+
             printf("[%d]\t[%d:%d:%d]\tlat: %f\tlon: %f\tspeed: %f m/s\n", processed_nmea, act_t.hour, act_t.min, act_t.sec, act_lat_lon[0], act_lat_lon[1], out_msg.speed_m_s);
             
             memcpy(old_lat_lon, act_lat_lon, 2*sizeof(float));
             memcpy(&old_t, &act_t, sizeof(utc_timestamp));
-            
-            usleep(1000000 * DELAY_S);
+            usleep(SECONDS_TO_MICROSECONDS(DELAY_S));
             
             processed_nmea += 1;
         }
