@@ -21,9 +21,10 @@
 #include <netinet/in.h> 
 
 
-void init_pipe()
+void init_temporary()
 {
     unlink("../tmp/pipe");
+    unlink("../tmp/shared");
     //mknod("../tmp/pipe", S_IFIFO | 0660, 0);
     mkfifo("../tmp/pipe", S_IRWXU);
 }
@@ -55,7 +56,7 @@ int main()
 {
     int can_exit;
     clear_logs();
-    init_pipe();
+    init_temporary();
     
     struct sockaddr_in saddr;
     int sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
