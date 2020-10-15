@@ -24,8 +24,7 @@
 void init_temporary()
 {
     unlink("../tmp/pipe");
-    unlink("../tmp/shared");
-    //mknod("../tmp/pipe", S_IFIFO | 0660, 0);
+    unlink("../tmp/shared.tmp");
     mkfifo("../tmp/pipe", S_IRWXU);
 }
 
@@ -129,6 +128,8 @@ int main()
     
     close(sock_fd);
     kill(pid[6], SIGKILL);
+    unlink("../tmp/shared.tmp");
+    unlink("../tmp/pipe");
     return 0;
 }
 
