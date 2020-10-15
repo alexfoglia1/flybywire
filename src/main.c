@@ -37,6 +37,8 @@ void clear_logs()
     remove("../log/expectedPFC2.log");
     remove("../log/expectedPFC3.log");
     remove("../log/failures.log");
+    remove("../log/status.log");
+    remove("../log/switch.log");
 }
 
 int sock_bind(int sock_fd, struct sockaddr_in* saddr)
@@ -56,7 +58,7 @@ int main()
     int can_exit;
     clear_logs();
     init_temporary();
-    
+
     struct sockaddr_in saddr;
     int sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if(sock_bind(sock_fd, &saddr) != 0)
@@ -91,6 +93,7 @@ int main()
         exit(EXIT_SUCCESS);
     }
     
+    
     pid[3] = fork();
     if(pid[3] == 0)
     {
@@ -117,12 +120,33 @@ int main()
     pid[6] = fork();
     if(pid[6] == 0)
     {
-        /* Child process GEN_FAILURE*/
+        /* Child process GEN_FAILURE */
         generate_failures(pid[3], pid[4], pid[5]);
         /* exit on SIGKILL from parent */
     }
     
-    for(int i = 0; i < N_SUBPROCESSES - 1; i++)
+    pid[7] = fork();
+    if(pid[7] == 0)
+    {
+        /* Child process PFC Disconnect Switch */
+        pfcswitch(pid[3], pid[4], pid[5]);
+        
+        /* exit on SIGEMR from WES */
+        for(int i = 0; i < N_SUBPROCESSES; i++)
+        {
+            kill(pid[i], SIGKILL);
+        }
+        exit(EXIT_FAILURE);
+    }
+    
+    pid[8] = fork();
+    if(pid[8] == 0)
+    {
+        /* Child process WES */
+        check(pid[7]);
+    }
+    
+    for(int i = 0; i < N_SUBPROCESSES - 3; i++)
     {
         wait(&can_exit);
     }
@@ -130,6 +154,8 @@ int main()
     /* cleanup */
     close(sock_fd);
     kill(pid[6] /* GEN_FAILURE */, SIGKILL);
+    kill(pid[7] /* PFC Disconnect Switch */, SIGKILL);
+    kill(pid[8] /* WES */, SIGKILL);
     unlink("../tmp/shared.tmp");
     unlink("../tmp/pipe");
     

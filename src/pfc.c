@@ -74,7 +74,6 @@ void pfc_loop(int output_fd, pfc_id id, struct sockaddr_in* saddr)
     out_msg.id = id;
     
     FILE* nmea_file = fopen("G18.txt", "r");
-
     while(fgets(act_nmea, NMEA_SIZE, nmea_file) != NULL)
     {
         if(string_starts_with("$GPGLL", (const char*) act_nmea))
@@ -95,7 +94,6 @@ void pfc_loop(int output_fd, pfc_id id, struct sockaddr_in* saddr)
             out_msg.cnt = processed_nmea;
             send_pfc_msg(out_msg, output_fd, saddr);
 
-            printf("[%d]\t[%d:%d:%d]\tlat: %f\tlon: %f\tspeed: %f m/s\n", processed_nmea, act_t.hour, act_t.min, act_t.sec, act_lat_lon[0], act_lat_lon[1], out_msg.speed_m_s);
             
             memcpy(old_lat_lon, act_lat_lon, 2*sizeof(float));
             memcpy(&old_t, &act_t, sizeof(utc_timestamp));
@@ -109,6 +107,7 @@ void pfc_loop(int output_fd, pfc_id id, struct sockaddr_in* saddr)
     kill_msg.id = id;
     kill_msg.speed_m_s = 0.0;
     kill_msg.end_flag = 1;
+    kill_msg.cnt = processed_nmea;
     
     send_pfc_msg(kill_msg, output_fd, saddr);
 }

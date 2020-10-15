@@ -19,6 +19,7 @@ void log_speed(const char* filename, float speed_m_s)
 
 void transducers_loop(int input_fd, tnd_id id)
 {
+    usleep(SECONDS_TO_MICROSECONDS(DELAY_S));
     const char* filename = (id == TND_1) ? "../log/speedPFC1.log" :
                            (id == TND_2) ? "../log/speedPFC2.log" :
                            "../log/speedPFC3.log";
@@ -28,7 +29,7 @@ void transducers_loop(int input_fd, tnd_id id)
     int bytes = 0;
     while(true)
     {
-        usleep(SECONDS_TO_MICROSECONDS(DELAY_S));
+        
         if(id == TND_1)
         {
             struct sockaddr_in cliaddr;
@@ -49,19 +50,26 @@ void transducers_loop(int input_fd, tnd_id id)
         {
             /* id == TND_3 */
             FILE* f = fopen("../tmp/shared.tmp", "r");
-            fseek(f, expected_cnt * sizeof(pfc_message), SEEK_CUR);
-            bytes = sizeof(pfc_message) * fread(&in_msg, sizeof(pfc_message), 1, f);
-            fclose(f);
             
-            expected_cnt = in_msg.cnt + 1;
+            int act_cnt = 0;
+            do
+            {
+                bytes = sizeof(pfc_message) * fread(&in_msg, sizeof(pfc_message), 1, f);
+                act_cnt = (bytes) ? in_msg.cnt : act_cnt;
+            }while(act_cnt < expected_cnt);
+            
+            fclose(f);
         }
         if(in_msg.end_flag == 0)
         {
             log_speed(filename, in_msg.speed_m_s);
+            expected_cnt += 1;
         }
         else if(in_msg.end_flag == 1)
         {
             return;
         }
+        
+        usleep(SECONDS_TO_MICROSECONDS(DELAY_S));
     }
 }

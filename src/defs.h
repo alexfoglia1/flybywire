@@ -1,12 +1,13 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-#define N_SUBPROCESSES 7
+#define N_SUBPROCESSES 9
 #define PORT      1234
 
 #define DELAY_S   1
 #define NMEA_SIZE 44
 #define NMET_SIZE 6
+#define FPRINTED_FLOAT_SIZE 9
 
 #define SECONDS_IN_HOUR 3600
 #define SECONDS_IN_MIN  60
@@ -26,6 +27,14 @@
 #define P_SIGINT  1e-4
 #define P_SIGCONT 1e-1
 #define P_SIGUSR1 1e-1
+
+#define SIGERR1 SIGUSR1
+#define SIGERR2 SIGUSR2
+#define SIGERR3 SIGCONT
+#define SIGEMR  SIGINT
+
+#define STATUS_ERROR -1
+#define STATUS_OK     0
 
 typedef struct
 {
@@ -54,4 +63,4 @@ typedef struct
     int end_flag;
 } pfc_message;
 
-#endif
+#endif //DEFS_H
