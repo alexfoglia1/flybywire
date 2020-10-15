@@ -2,3 +2,4 @@ fly_by_wire
 compile
 *.log
 *.tmp
+*bin*
