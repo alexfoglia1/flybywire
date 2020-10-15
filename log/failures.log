@@ -1,1 +1,8 @@
-[Thu Oct 15 14:16:41 2020] send usr1 signal to pfc 3
+[Thu Oct 15 14:34:59 2020] send cont signal to pfc 3
+[Thu Oct 15 14:35:00 2020] send usr1 signal to pfc 3
+[Thu Oct 15 14:35:02 2020] send usr1 signal to pfc 3
+[Thu Oct 15 14:35:05 2020] send usr1 signal to pfc 2
+[Thu Oct 15 14:35:06 2020] send usr1 signal to pfc 2
+[Thu Oct 15 14:35:12 2020] send usr1 signal to pfc 3
+[Thu Oct 15 14:35:13 2020] send cont signal to pfc 1
+[Thu Oct 15 14:35:13 2020] send usr1 signal to pfc 1
