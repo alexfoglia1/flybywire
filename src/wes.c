@@ -8,16 +8,23 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+int expected_cnt = 1;
+
 float read_last(const char* filename)
 {
     char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
-
+    size_t  line_len = 0;
+    ssize_t byte_len = 0;
+    float read_speed = 0;
+    int   read_cnt   = 0;
+    
     FILE* fp = fopen(filename, "r");
-    while((read = getline(&line, &len, fp)) != -1);
+    for(int i = 0; i < expected_cnt; i++)
+    {
+        byte_len = getline(&line, &line_len, fp);
+    }
     fclose(fp);
-
+    
     return atof(line);
 }
 
@@ -34,6 +41,7 @@ void check(int pid_dis)
         v1 = read_last("../log/speedPFC1.log");
         v2 = read_last("../log/speedPFC2.log");
         v3 = read_last("../log/speedPFC3.log");
+        expected_cnt += 1;
         
         FILE* f = fopen("../log/status.log", "a");
         if(v1 == v2 && v2 == v3)

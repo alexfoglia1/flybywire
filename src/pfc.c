@@ -9,7 +9,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <sys/stat.h> 
+#include <arpa/inet.h> 
+#include <netinet/in.h> 
 #include <unistd.h>
 
 bool alterate_next = false;
@@ -18,7 +22,7 @@ void sigusr1()
     alterate_next = true;
 }
 
-utc_timestamp parse_lat_lon(const char* nmea_string, float* p_lat_lon)
+utc_timestamp parse_gpgll(const char* nmea_string, float* p_lat_lon)
 {
     utc_timestamp utc_time;
     int nmea_time;
@@ -32,11 +36,18 @@ utc_timestamp parse_lat_lon(const char* nmea_string, float* p_lat_lon)
     return utc_time;
 }
 
-void send_pfc_msg(pfc_message out_msg, int output_fd, struct sockaddr_in* saddr)
+void send_pfc_msg(pfc_message out_msg)
 {
     if(out_msg.id == PFC_1)
     {
-        sendto(output_fd, (char*) &out_msg, sizeof(pfc_message), 0, (const struct sockaddr*) saddr, sizeof(struct sockaddr));
+        int sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        struct sockaddr_in saddr;
+        saddr.sin_family = AF_INET;
+        saddr.sin_port = htons(PORT);
+        saddr.sin_addr.s_addr = INADDR_ANY;
+        
+        sendto(sock_fd, (char*) &out_msg, sizeof(pfc_message), 0, (const struct sockaddr*) &saddr, sizeof(struct sockaddr));
+        close(sock_fd);
     }
     else if(out_msg.id == PFC_2)
     {
@@ -52,7 +63,7 @@ void send_pfc_msg(pfc_message out_msg, int output_fd, struct sockaddr_in* saddr)
     }
 }
 
-void pfc_loop(int output_fd, pfc_id id, struct sockaddr_in* saddr)
+void pfc_loop(pfc_id id)
 {
     signal(SIGUSR1, sigusr1);
     
@@ -70,36 +81,40 @@ void pfc_loop(int output_fd, pfc_id id, struct sockaddr_in* saddr)
     memset(act_lat_lon, 0x00, 2 * sizeof(float));
     memset(&old_t, 0x00, sizeof(utc_timestamp));
     memset(&act_t, 0x00, sizeof(utc_timestamp));
+    
     processed_nmea = 0;
     out_msg.id = id;
+    out_msg.end_flag = 0;
     
     FILE* nmea_file = fopen("G18.txt", "r");
     while(fgets(act_nmea, NMEA_SIZE, nmea_file) != NULL)
     {
         if(string_starts_with("$GPGLL", (const char*) act_nmea))
         {
-            act_t = parse_lat_lon((const char*) act_nmea, act_lat_lon);
+            processed_nmea += 1;
+            act_t = parse_gpgll((const char*) act_nmea, act_lat_lon);
             float act_t_s = utc_to_seconds(act_t);
             float old_t_s = utc_to_seconds(old_t);
-            float dt_s = (act_t_s) - (old_t_s);
-            float distance_m = distance_ll(old_lat_lon[0], old_lat_lon[1], act_lat_lon[0], act_lat_lon[1]);
+            float dt_s    = (processed_nmea == 1) ? 0: 
+                                    act_t_s - old_t_s;
+            float dist_m  = (processed_nmea == 1) ? 0: 
+                              distance_ll(old_lat_lon[0], old_lat_lon[1], act_lat_lon[0], act_lat_lon[1]);
                 
-            out_msg.speed_m_s = (distance_m > 0 && dt_s > 0) ? distance_m / dt_s : 0;
+            out_msg.speed_m_s = (dist_m > 0 && dt_s > 0) ? dist_m / dt_s : 0;
             if(alterate_next)
             {
                 out_msg.speed_m_s = (float) ((int)round(out_msg.speed_m_s) >> 2);
                 alterate_next = false;
             }
-            out_msg.end_flag = 0;
-            out_msg.cnt = processed_nmea;
-            send_pfc_msg(out_msg, output_fd, saddr);
-
             
+            out_msg.cnt = processed_nmea;
+            
+            send_pfc_msg(out_msg);
+
             memcpy(old_lat_lon, act_lat_lon, 2*sizeof(float));
             memcpy(&old_t, &act_t, sizeof(utc_timestamp));
-            usleep(SECONDS_TO_MICROSECONDS(DELAY_S));
             
-            processed_nmea += 1;
+            usleep(SECONDS_TO_MICROSECONDS(DELAY_S));
         }
     }
     
@@ -107,7 +122,7 @@ void pfc_loop(int output_fd, pfc_id id, struct sockaddr_in* saddr)
     kill_msg.id = id;
     kill_msg.speed_m_s = 0.0;
     kill_msg.end_flag = 1;
-    kill_msg.cnt = processed_nmea;
+    kill_msg.cnt = processed_nmea + 1;
     
-    send_pfc_msg(kill_msg, output_fd, saddr);
+    send_pfc_msg(kill_msg);
 }

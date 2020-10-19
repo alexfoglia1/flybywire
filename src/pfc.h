@@ -2,12 +2,6 @@
 #define PFC_H
 #include "defs.h"
 
-#include <sys/types.h> 
-#include <sys/socket.h>
-#include <sys/stat.h> 
-#include <arpa/inet.h> 
-#include <netinet/in.h> 
-
-void pfc_loop(int output_fd, pfc_id pfc, struct sockaddr_in* saddr);
+void pfc_loop(pfc_id id);
 
 #endif //PFC_H

@@ -20,12 +20,17 @@
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
 
-
 void init_temporary()
-{
-    unlink("../tmp/pipe");
-    unlink("../tmp/shared.tmp");
+{    
+    FILE* f = fopen("../tmp/shared.tmp", "w");
+    fclose(f);
     mkfifo("../tmp/pipe", S_IRWXU);
+}
+
+void rem_temporary()
+{
+    unlink("../tmp/shared.tmp");
+    unlink("../tmp/pipe");
 }
 
 void clear_logs()
@@ -41,64 +46,59 @@ void clear_logs()
     remove("../log/switch.log");
 }
 
-int sock_bind(int sock_fd, struct sockaddr_in* saddr)
+int sock_bind(int sock_fd)
 {
-    memset(saddr, 0x00, sizeof(struct sockaddr_in));
+    struct sockaddr_in saddr;
+    memset(&saddr, 0x00, sizeof(struct sockaddr_in));
     
-    saddr->sin_family      = AF_INET;
-    saddr->sin_port        = htons(PORT);
-    saddr->sin_addr.s_addr = INADDR_ANY;
+    saddr.sin_family      = AF_INET;
+    saddr.sin_port        = htons(PORT);
+    saddr.sin_addr.s_addr = INADDR_ANY;
     
-    return bind(sock_fd, (struct sockaddr*)saddr, sizeof(struct sockaddr));
+    return bind(sock_fd, (struct sockaddr*) &saddr, sizeof(struct sockaddr));
 }
-
 
 int main()
 {
     int can_exit;
     clear_logs();
     init_temporary();
-
-    struct sockaddr_in saddr;
-    int sock_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if(sock_bind(sock_fd, &saddr) != 0)
+    int tnd_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if(sock_bind(tnd_socket) != 0)
     {
         perror("Cannot create socket");
         exit(EXIT_FAILURE);
     }
-    
-    FILE* f = fopen("../tmp/shared.tmp", "w");
-    fclose(f);
+    set_tnd_sock_fd(&tnd_socket);
     
     int pid[N_SUBPROCESSES];
     pid[0] = fork();
     if(pid[0] == 0)
     {
         /* Child process  TND_1 */
-        transducers_loop(sock_fd, TND_1);
+        transducers_loop(TND_1);
         exit(EXIT_SUCCESS);
     }
     pid[1] = fork();
     if(pid[1] == 0)
     {
         /* Child process  TND_2 */
-        transducers_loop(0, TND_2);
+        transducers_loop(TND_2);
         exit(EXIT_SUCCESS);
     }
     pid[2] = fork();
     if(pid[2] == 0)
     {
         /* Child process  TND_3 */
-        transducers_loop(0, TND_3);
+        transducers_loop(TND_3);
         exit(EXIT_SUCCESS);
     }
-    
-    
+      
     pid[3] = fork();
     if(pid[3] == 0)
     {
         /* Child process  PFC_1 */
-        pfc_loop(sock_fd, PFC_1, &saddr);
+        pfc_loop(PFC_1);
         exit(EXIT_SUCCESS);
 
     }
@@ -106,14 +106,14 @@ int main()
     if(pid[4] == 0)
     {
         /* Child process  PFC_2 */
-        pfc_loop(0, PFC_2, &saddr);
+        pfc_loop(PFC_2);
         exit(EXIT_SUCCESS);
     }
     pid[5] = fork();
     if(pid[5] == 0)
     {
         /* Child process PFC_3 */
-        pfc_loop(0, PFC_3, &saddr);
+        pfc_loop(PFC_3);
         exit(EXIT_SUCCESS);
     }
     
@@ -145,19 +145,18 @@ int main()
         /* Child process WES */
         check(pid[7]);
     }
-    
+        
     for(int i = 0; i < N_SUBPROCESSES - 3; i++)
     {
         wait(&can_exit);
     }
     
     /* cleanup */
-    close(sock_fd);
+    close(tnd_socket);
+    rem_temporary();
     kill(pid[6] /* GEN_FAILURE */, SIGKILL);
     kill(pid[7] /* PFC Disconnect Switch */, SIGKILL);
     kill(pid[8] /* WES */, SIGKILL);
-    unlink("../tmp/shared.tmp");
-    unlink("../tmp/pipe");
     
     return 0;
 }

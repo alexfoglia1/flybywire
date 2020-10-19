@@ -57,10 +57,10 @@ typedef enum
 typedef struct
 {
     float  speed_m_s;
-    pfc_id id;
     unsigned int cnt;
+    pfc_id id;
     
-    int end_flag;
+    unsigned int end_flag;
 } pfc_message;
 
 #endif //DEFS_H
