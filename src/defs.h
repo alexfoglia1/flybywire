@@ -28,11 +28,6 @@
 #define P_SIGCONT 1e-1
 #define P_SIGUSR1 1e-1
 
-#define SIGERR1 SIGUSR1
-#define SIGERR2 SIGUSR2
-#define SIGERR3 SIGCONT
-#define SIGEMR  SIGINT
-
 #define STATUS_ERROR -1
 #define STATUS_OK     0
 
@@ -62,5 +57,12 @@ typedef struct
     
     unsigned int end_flag;
 } pfc_message;
+
+typedef struct
+{
+    unsigned int pfc1_failed;
+    unsigned int pfc2_failed;
+    unsigned int pfc3_failed;
+} wes_to_switch_message;
 
 #endif //DEFS_H

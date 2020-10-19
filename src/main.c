@@ -131,7 +131,7 @@ int main()
         /* Child process PFC Disconnect Switch */
         pfcswitch(pid[3], pid[4], pid[5]);
         
-        /* exit on SIGEMR from WES */
+        /* exit on emergency message from WES */
         for(int i = 0; i < N_SUBPROCESSES; i++)
         {
             kill(pid[i], SIGKILL);
@@ -150,7 +150,7 @@ int main()
     {
         wait(&can_exit);
     }
-    
+
     /* cleanup */
     close(tnd_socket);
     rem_temporary();
