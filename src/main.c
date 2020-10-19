@@ -145,7 +145,7 @@ int main()
         /* Child process WES */
         check(pid[7]);
     }
-        
+    
     for(int i = 0; i < N_SUBPROCESSES - 3; i++)
     {
         wait(&can_exit);
