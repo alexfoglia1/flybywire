@@ -30,14 +30,16 @@ int extract_digit_from(int n, int pos)
 
 float distance_ll(float o_lat, float o_lon, float p_lat, float p_lon)
 {
-    float earth_radius_m = EARTH_RADIUS(o_lat, o_lon, p_lat, p_lon);
-    float delta_lat = p_lat - o_lat;
-    float delta_lon = p_lon - o_lon;
+    float R = 6371e3;
+    float phi1 = o_lat;
+    float phi2 = p_lat;
+    float dphi = phi2 - phi1;
+    float dlam = p_lon - o_lon; 
 
-    float a = sin(delta_lat/2) * sin(delta_lat/2) + sin(delta_lon/2) * sin(delta_lon/2) * cos(DEG_TO_RADIANS(o_lat)) * cos(DEG_TO_RADIANS(p_lat));
-    float c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    
-    return earth_radius_m * c;
+    float a = sin(dphi/2) * sin(dphi/2) + cos(phi1) * cos(phi2) * sin(dlam/2) * sin(dlam/2);
+    float c = 2 * atan2(sqrt(a), sqrt(1-a));
+
+    return R * c;
 }
 
 void timestamp(char* dst)

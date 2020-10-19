@@ -141,7 +141,10 @@ void pfc_loop(pfc_id id)
             float dt_s    = (processed_nmea == 1) ? 0: 
                                     act_t_s - old_t_s;
             float dist_m  = (processed_nmea == 1) ? 0: 
-                              distance_ll(old_lat_lon[0], old_lat_lon[1], act_lat_lon[0], act_lat_lon[1]);
+                              distance_ll(DEG_TO_RADIANS(old_lat_lon[0]), 
+                                          DEG_TO_RADIANS(old_lat_lon[1]),
+                                          DEG_TO_RADIANS(act_lat_lon[0]),
+                                          DEG_TO_RADIANS(act_lat_lon[1]));
             
             out_msg.speed_m_s = (dist_m > 0 && dt_s > 0) ? dist_m / dt_s : 0;
             if(alterate_next)
