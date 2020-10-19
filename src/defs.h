@@ -4,7 +4,7 @@
 #define N_SUBPROCESSES 9
 #define PORT      1234
 
-#define DELAY_S   1
+#define DELAY_S   0.01
 #define NMEA_SIZE 44
 #define NMET_SIZE 6
 #define FPRINTED_FLOAT_SIZE 9

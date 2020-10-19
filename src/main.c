@@ -25,6 +25,17 @@ void init_temporary()
     FILE* f = fopen("../tmp/shared.tmp", "w");
     fclose(f);
     mkfifo("../tmp/pipe", S_IRWXU);
+    
+    FILE* fr = fopen("../src/map.html", "r");
+    FILE* fw = fopen("map.html", "w");
+    
+    char ch;
+    while((ch = fgetc(fr)) != EOF)
+    {
+        fputc(ch, fw);
+    }
+    fclose(fr);
+    fclose(fw);
 }
 
 void rem_temporary()
@@ -150,7 +161,7 @@ int main()
     {
         wait(&can_exit);
     }
-
+    
     /* cleanup */
     close(tnd_socket);
     rem_temporary();

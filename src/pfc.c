@@ -26,9 +26,52 @@ utc_timestamp parse_gpgll(const char* nmea_string, float* p_lat_lon)
 {
     utc_timestamp utc_time;
     int nmea_time;
-    char ignore[NMEA_SIZE];
     
-    sscanf(nmea_string, "$GPGLL,%f,N,%f,E,%d,%s", &p_lat_lon[0], &p_lat_lon[1], &nmea_time, ignore);
+    char cp_in[NMEA_SIZE];
+    memcpy(cp_in, nmea_string, NMEA_SIZE);
+    
+    char qLat[2],qLon[2];
+    char nmeaLat[NMEA_SIZE];
+    char nmeaLon[NMEA_SIZE];
+
+    strtok(cp_in, ",");
+    sprintf(nmeaLat, "%s", strtok(NULL, ","));
+    sprintf(qLat, "%s", strtok(NULL, ","));
+    sprintf(nmeaLon, "%s", strtok(NULL, ","));
+    sprintf(qLon, "%s", strtok(NULL, ","));
+    nmea_time = atoi(strtok(NULL, ","));
+    
+    char dd[3];
+    char ddd[4];
+    char mm_mmmm_lat[8];
+    char mm_mmmm_lon[8];
+    for(int i = 0; i < 2; i++)
+    {
+        dd[i] = nmeaLat[i];
+    }
+    dd[2] = '\0';
+    
+    for(int i = 3; i < 3 + 8; i++)
+    {
+        mm_mmmm_lat[i - 3] = nmeaLat[i];
+    }
+    mm_mmmm_lat[7] = '\0';
+    
+    for(int i = 0; i < 3; i++)
+    {
+        ddd[i] = nmeaLon[i];
+    }
+    ddd[3] = '\0';
+    
+    for(int i = 4; i < 4 + 8; i++)
+    {
+        mm_mmmm_lon[i - 4] = nmeaLon[i];
+    }
+    mm_mmmm_lon[7] = '\0';
+
+    p_lat_lon[0] = atoi(dd)  + atof(mm_mmmm_lat)/60.0f;
+    p_lat_lon[1] = atoi(ddd) + atof(mm_mmmm_lon)/60.0f;
+    
     utc_time.hour = 10*extract_digit_from(nmea_time, DIGIT_0) + extract_digit_from(nmea_time, DIGIT_1);
     utc_time.min  = 10*extract_digit_from(nmea_time, DIGIT_2) + extract_digit_from(nmea_time, DIGIT_3);
     utc_time.sec  = 10*extract_digit_from(nmea_time, DIGIT_4) + extract_digit_from(nmea_time, DIGIT_5);
@@ -99,7 +142,7 @@ void pfc_loop(pfc_id id)
                                     act_t_s - old_t_s;
             float dist_m  = (processed_nmea == 1) ? 0: 
                               distance_ll(old_lat_lon[0], old_lat_lon[1], act_lat_lon[0], act_lat_lon[1]);
-                
+            
             out_msg.speed_m_s = (dist_m > 0 && dt_s > 0) ? dist_m / dt_s : 0;
             if(alterate_next)
             {
@@ -114,6 +157,12 @@ void pfc_loop(pfc_id id)
             memcpy(old_lat_lon, act_lat_lon, 2*sizeof(float));
             memcpy(&old_t, &act_t, sizeof(utc_timestamp));
             
+            if(out_msg.speed_m_s > 0 && id == PFC_1)
+            {
+                FILE* map_file = fopen("map.html", "a");
+                fprintf(map_file, "\n<script>\nL.marker([%f, %f]).addTo(mymap)\n</script>\n", act_lat_lon[0], act_lat_lon[1]);
+                fclose(map_file);
+            }
             usleep(SECONDS_TO_MICROSECONDS(DELAY_S));
         }
     }
@@ -125,4 +174,5 @@ void pfc_loop(pfc_id id)
     kill_msg.cnt = processed_nmea + 1;
     
     send_pfc_msg(kill_msg);
+
 }
