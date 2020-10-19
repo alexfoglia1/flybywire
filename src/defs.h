@@ -23,10 +23,10 @@
 #define DEG_TO_RADIANS(deg) ( (180.0*deg) / M_PI)
 #define EARTH_RADIUS(lat1,lon1,lat2,lon2) (sqrt((pow(pow(6378137,2) * cos(lat1),2) + pow(pow(6356752,2) * sin(lon1),2)) / (pow(6378137 * cos(lat2),2) + pow(6356752 * sin(lon2),2))))
 
-#define P_SIGSTOP 1e-2
-#define P_SIGINT  1e-4
-#define P_SIGCONT 1e-1
-#define P_SIGUSR1 1e-1
+#define P_SIGSTOP 1e-200
+#define P_SIGINT  1e-400
+#define P_SIGCONT 1e-100
+#define P_SIGUSR1 1e-100
 
 #define STATUS_ERROR -1
 #define STATUS_OK     0

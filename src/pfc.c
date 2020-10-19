@@ -51,9 +51,9 @@ utc_timestamp parse_gpgll(const char* nmea_string, float* p_lat_lon)
     }
     dd[2] = '\0';
     
-    for(int i = 3; i < 3 + 8; i++)
+    for(int i = 2; i < 3 + 8; i++)
     {
-        mm_mmmm_lat[i - 3] = nmeaLat[i];
+        mm_mmmm_lat[i - 2] = nmeaLat[i];
     }
     mm_mmmm_lat[7] = '\0';
     
@@ -63,9 +63,9 @@ utc_timestamp parse_gpgll(const char* nmea_string, float* p_lat_lon)
     }
     ddd[3] = '\0';
     
-    for(int i = 4; i < 4 + 8; i++)
+    for(int i = 3; i < 4 + 8; i++)
     {
-        mm_mmmm_lon[i - 4] = nmeaLon[i];
+        mm_mmmm_lon[i - 3] = nmeaLon[i];
     }
     mm_mmmm_lon[7] = '\0';
 
@@ -157,10 +157,10 @@ void pfc_loop(pfc_id id)
             memcpy(old_lat_lon, act_lat_lon, 2*sizeof(float));
             memcpy(&old_t, &act_t, sizeof(utc_timestamp));
             
-            if(out_msg.speed_m_s > 0 && id == PFC_1)
+            if(id == PFC_1)
             {
                 FILE* map_file = fopen("map.html", "a");
-                fprintf(map_file, "\n<script>\nL.marker([%f, %f]).addTo(mymap)\n</script>\n", act_lat_lon[0], act_lat_lon[1]);
+                fprintf(map_file, "\n<script>\nL.circle([%f, %f], 1).addTo(mymap)\n</script>\n", act_lat_lon[0], act_lat_lon[1]);
                 fclose(map_file);
             }
             usleep(SECONDS_TO_MICROSECONDS(DELAY_S));
